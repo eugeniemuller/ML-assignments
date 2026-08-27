@@ -1,0 +1,21 @@
+Add Gaussian noise
+Apply log transformation to the feature
+Apply normalisation to the feature
+Bin the feature into intervals
+Clamp the instances
+Create a new feature to indicate missingness
+Do nothing
+Encode the feature using integers
+Encode the features using one-hot encoding
+Impute the values using complete case analysis
+Impute the values with the mean
+Impute the values with the median
+Impute the values with the mode
+Map feature to 2 new features using sine and cosine transformations
+Oversample the minority class(es)
+Remove one of the features
+Remove the feature
+Remove the instances
+Replace values with missingness
+Rescale the feature
+Undersample the majority class(es)

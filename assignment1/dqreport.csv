@@ -1,0 +1,174 @@
+Feature,Data Quality Issue,Evidence,Handling Strategy,Justification
+A5,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A6,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A7,Cardinality,Cardinality > 95%,Remove the feature,"Near uniqueness of observations suggest some time of identifier, not a predictive feature"
+A8,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A9,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A11,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A12,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A15,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A16,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A23,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A26,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A30,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A31,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A32,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A33,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A34,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A36,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A37,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A38,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A39,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A40,Cardinality,Cardinality > 95%,Remove the feature,"Near uniqueness of observations suggest some time of identifier, not a predictive feature"
+A43,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A44,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A45,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A5,Skewness,Skewness = 0.35 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A6,Skewness,Skewness = 0.44 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A7,Skewness,Skewness = 0.01 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A8,Skewness,Skewness = 0.14 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A9,Skewness,Skewness = 0.29 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A10,Skewness,Skewness = 1.65 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A11,Skewness,Skewness = -2.17 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A12,Skewness,Skewness = 1.48 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A13,Skewness,Skewness = 1.13 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A15,Skewness,Skewness = 0.22 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A16,Skewness,Skewness = 0.38 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A19,Skewness,Skewness = 0.40 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A20,Skewness,Skewness = 0.27 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A21,Skewness,Skewness = 0.33 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A22,Skewness,Skewness = 0.44 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A23,Skewness,Skewness = 2.87 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A24,Skewness,Skewness = 2.21 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A25,Skewness,Skewness = 2.20 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A26,Skewness,Skewness = 2.81 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A27,Skewness,Skewness = 1.49 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A28,Skewness,Skewness = 1.32 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A29,Skewness,Skewness = 1.47 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A32,Skewness,Skewness = 0.43 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A33,Skewness,Skewness = 0.12 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A34,Skewness,Skewness = 1.21 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A36,Skewness,Skewness = 1.49 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A37,Skewness,Skewness = 1.56 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A38,Skewness,Skewness = 1.56 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A39,Skewness,Skewness = 1.44 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A40,Skewness,Skewness = 0.00 (moderate skew),Do nothing,Moderate skew is common and usually not severe enough to require transformation
+A44,Skewness,Skewness = 1.36 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A45,Skewness,Skewness = 1.41 (|skew| > 1 = highly skewed),Apply a log transformation to the feature,Log transformation will reduce skewness and make the distribution more symmetric
+A1,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A5,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A6,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A8,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A9,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A10,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A11,Skewness,Mean is far higher than median (more than 20% of the range),Apply a log transformation,Log transformation will reduce skewness and make the distribution more symmetric
+A12,Skewness,Mean is far higher than median (more than 20% of the range),Apply a log transformation,Log transformation will reduce skewness and make the distribution more symmetric
+A13,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A14,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A19,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A20,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A21,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A23,Skewness,Mean is far higher than median (more than 20% of the range),Apply a log transformation,Log transformation will reduce skewness and make the distribution more symmetric
+A24,Skewness,Mean is far higher than median (more than 20% of the range),Apply a log transformation,Log transformation will reduce skewness and make the distribution more symmetric
+A25,Skewness,Mean is far higher than median (more than 20% of the range),Apply a log transformation,Log transformation will reduce skewness and make the distribution more symmetric
+A26,Skewness,Mean is far higher than median (more than 20% of the range),Apply a log transformation,Log transformation will reduce skewness and make the distribution more symmetric
+A30,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A31,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A34,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A36,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A37,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A38,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A39,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A44,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A45,Magnitude,Maximum value is more than 10 times the median,Rescale the feature,Wide-magnitude features can dominate distance/gradient-based models unless brought to a comparable scale
+A10,Missingness,"54.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A11,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A22,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A24,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A25,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A28,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A29,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A32,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A45,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
+A1,Robustness,"IQR/std ratio = 0.11, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A5,Robustness,"IQR/std ratio = 0.07, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A6,Robustness,"IQR/std ratio = 0.09, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A8,Robustness,"IQR/std ratio = 0.01, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A9,Robustness,"IQR/std ratio = 0.01, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A10,Robustness,"IQR/std ratio = 0.78, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A13,Robustness,"IQR/std ratio = 0.43, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A14,Robustness,"IQR/std ratio = 0.01, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A15,Robustness,"IQR/std ratio = 0.05, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A16,Robustness,"IQR/std ratio = 0.04, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A19,Robustness,"IQR/std ratio = 0.01, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A20,Robustness,"IQR/std ratio = 0.05, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A21,Robustness,"IQR/std ratio = 0.06, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A22,Robustness,"IQR/std ratio = 0.03, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A27,Robustness,"IQR/std ratio = 0.88, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A28,Robustness,"IQR/std ratio = 0.69, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A29,Robustness,"IQR/std ratio = 0.98, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A30,Robustness,"IQR/std ratio = 0.21, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A31,Robustness,"IQR/std ratio = 0.35, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A32,Robustness,"IQR/std ratio = 0.00, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A33,Robustness,"IQR/std ratio = 0.00, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A34,Robustness,"IQR/std ratio = 0.92, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A36,Robustness,"IQR/std ratio = 0.61, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A37,Robustness,"IQR/std ratio = 0.37, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A38,Robustness,"IQR/std ratio = 0.34, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A39,Robustness,"IQR/std ratio = 0.63, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A43,Robustness,"IQR/std ratio = 0.00, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A44,Robustness,"IQR/std ratio = 0.71, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A45,Robustness,"IQR/std ratio = 0.83, well below the ~1.35 expected for normal data — std likely inflated by outliers",Apply a log transformation to the feature,There is a heavy tail - log transformation will stabilise the spread
+A1,Outliers,Number of outliers 8.382362072712596% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A5,Outliers,Number of outliers 13.53309633953243% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A6,Outliers,Number of outliers 11.540640814679128% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A7,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A8,Outliers,Number of outliers 12.48253593716042% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A9,Outliers,Number of outliers 15.532925579806886% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A10,Outliers,Number of outliers 9.135887250961815% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A11,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A12,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A13,Outliers,Number of outliers 8.551181346828526% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A14,Outliers,Number of outliers 22.336924462106865% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A15,Outliers,Number of outliers 6.584339780806607% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A16,Outliers,Number of outliers 15.391660715948957% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A19,Outliers,Number of outliers 7.885606507497904% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A20,Outliers,Number of outliers 6.82573193827812% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A21,Outliers,Number of outliers 9.132928684529169% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A22,Outliers,Number of outliers 11.272561310984292% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A23,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A24,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A25,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A26,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A27,Outliers,Number of outliers 4.828619330000931% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A28,Outliers,Number of outliers 8.267767215250608% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A29,Outliers,Number of outliers 3.3172489926157662% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A30,Outliers,Number of outliers 12.67192399639852% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A31,Outliers,Number of outliers 12.880328479617498% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A32,Outliers,Number of outliers 9.904547174448133% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A33,Outliers,Number of outliers 6.578518426526747% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A34,Outliers,Number of outliers 10.892918128473408% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A36,Outliers,Number of outliers 16.450371014312772% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A37,Outliers,Number of outliers 19.021857244869448% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A38,Outliers,Number of outliers 18.723027725169985% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A39,Outliers,Number of outliers 16.85049209848179% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A40,Outliers,Number of outliers 0.0% is greater than 50%,Remove the instances,A large number of points are extreme - removing them avoids distorting the model
+A43,Outliers,Number of outliers 9.865255052935515% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A44,Outliers,Number of outliers 10.941817504424229% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A45,Outliers,Number of outliers 13.254953053749263% is less than 50%,Clamp the instances,A small number of points are extreme - capping will preserve the data while limiting the influence
+A2,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A3,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A4,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A17,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A18,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A35,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A41,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A42,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A46,Cardinality,Cardinality < 5%,Encode the features using integers,Too many categories for one-hot encoding
+A3,No information,"Mode makes up, 54.84% of the entire observations of this feature",Remove the feature,There is no predictive information and imputing values will likely be biased
+A17,No information,"Mode makes up, 100.0% of the entire observations of this feature",Remove the feature,There is no predictive information and imputing values will likely be biased
+A18,No information,"Mode makes up, 100.0% of the entire observations of this feature",Remove the feature,There is no predictive information and imputing values will likely be biased
+A41,No information,"Mode makes up, 98.74% of the entire observations of this feature",Remove the feature,There is no predictive information and imputing values will likely be biased
+A42,No information,"Mode makes up, 98.74% of the entire observations of this feature",Remove the feature,There is no predictive information and imputing values will likely be biased
+A46,No information,"Mode makes up, 98.11% of the entire observations of this feature",Remove the feature,There is no predictive information and imputing values will likely be biased
+A42,Missingness,"51.0, % missingness",Remove the feature,Over 50% missing - too little data to impute values reliably without introducing bias
