@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import skew as calculate_skew
+from scipy.stats import chi2_contingency
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import RobustScaler
 from sklearn.model_selection import train_test_split
@@ -30,12 +31,13 @@ for col in traffic_data.columns :
 # crosstab = pd.crosstab(traffic_data[missingness], traffic_data["attack_cat"])
 # after looking at crosstab - looks like MAR
 
-#is_missing_service = []
-#for i in traffic_data[missingness] :
-#    is_missing_service.append('1') if i == '?' else is_missing_service.append('0')
+is_missing_service = []
+for i in traffic_data[missingness] :  
+    is_missing_service.append('1') if i == '?' else is_missing_service.append('0')
 
-#service_target_ctable = pd.crosstab(is_missing_service, traffic_data["attack_cat"])
-#chi2, p, dof, expected = chi2_contingency(service_target_ctable)
+service_target_ctable = pd.crosstab(is_missing_service, traffic_data["attack_cat"])
+chi2, p, dof, expected = chi2_contingency(service_target_ctable)
+service_target_ctable.to_csv("service_table.csv", index=True)
 
 # p-value = 0
 # missing at random
@@ -99,17 +101,17 @@ iqr = q3 - q1
 
 # FOR REPORT WRITING : 
 
-#outliers_iqr = (X_train_num[numerical] < (q1 - 3 * iqr)) | (X_train_num[numerical] > (q3 + 3 * iqr))
-# out_pct = (outliers_iqr.sum()/len(traffic_data[numerical]))*100
+outliers_iqr = (X_train_num[numerical] < (q1 - 3 * iqr)) | (X_train_num[numerical] > (q3 + 3 * iqr))
+out_pct = (outliers_iqr.sum()/len(traffic_data[numerical]))*100
 
-# outlier_flag = outliers_iqr.any(axis=1) 
-# crosstab_outlier = pd.crosstab(outlier_flag, y)
-# print(crosstab_outlier)
+outlier_flag = outliers_iqr.any(axis=1) 
+crosstab_outlier = pd.crosstab(outlier_flag, y)
+crosstab_outlier.to_csv("outlier crosstab", index = True)
 
 # # to show why we need to use mahalanobis distance : 
 
-# outlier_by_feature = outliers_iqr.groupby(y).mean()  # % outlier rate per feature per class
-# print(outlier_by_feature)
+outlier_by_feature = outliers_iqr.groupby(y).mean()  # % outlier rate per feature per class
+print(outlier_by_feature)
 
 lower = q1 - 3 * iqr
 upper = q3 + 3 * iqr
