@@ -160,8 +160,14 @@ X_test_final = pd.get_dummies(X_test_red, columns=categorical, dtype=int)
 X_test_final = X_test_final.reindex(columns=X_train_final.columns, fill_value=0)
 
 #%%
+from sklearn.covariance import LedoitWolf
+cov = LedoitWolf().fit(X_train_final)
+
 knn = KNeighborsClassifier()
-param_grid = {'n_neighbors':np.arange(1,4)}
+param_grid = {'n_neighbors':np.arange(1,4),
+                'weights': ['distance'],
+                'metric': ['manhattan']
+            }
 knn_cv= GridSearchCV(knn,param_grid,cv=5)
 knn_cv.fit(X_train_final,y_train)
 
@@ -169,19 +175,19 @@ print(knn_cv.best_params_)
 print(knn_cv.best_score_)
 
 #%%
-from sklearn.covariance import LedoitWolf
-cov = LedoitWolf().fit(X_train_final)
 knn = KNeighborsClassifier(
-    n_neighbors=3,
+    n_neighbors=knn_cv.best_params_['n_neighbors'],
     weights='distance',
     metric='mahalanobis',
     metric_params={'VI': cov.precision_},
-    algorithm='brute'
+    algorithm='brute',
+    n_jobs = -1,
 )
 
 #%%
 knn.fit(X_train_final, y_train)
 predictions = knn.predict(X_test_final)
+accuracy = accuracy_score(y_test, predictions)
 
 # %%
 comparison = pd.DataFrame({
