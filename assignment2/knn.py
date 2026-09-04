@@ -240,7 +240,7 @@ comparison = pd.DataFrame({
  
 #%%
 # repeated runs for mean/std test accuracy -----------------------------------------------------------------------
-# hyperparameters are fixed from the Mahalanobis grid search above; only the
+# hyperparameters are fixed from the Mahalanobis grid search above
 
 
 N_REPEATS = 10
