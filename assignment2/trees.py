@@ -83,8 +83,8 @@ X_resampled, y_resampled = smote_nc.fit_resample(X_train_corr, y_train)
 #%%
 # ordinal encode categoricals instead of one-hot ------------------------------------------------------------------------
 ord_enc = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
-X_train_cat = pd.DataFrame(ord_enc.fit_transform(X_resampled[categorical]), columns=categorical, index=X_resampled.index)
-X_test_cat = pd.DataFrame(ord_enc.transform(X_test_corr[categorical]), columns=categorical, index=X_test_corr.index)
+X_train_cat = pd.DataFrame(ord_enc.fit_transform(X_resampled[categorical_remaining]), columns=categorical_remaining, index=X_resampled.index)
+X_test_cat = pd.DataFrame(ord_enc.transform(X_test_corr[categorical_remaining]), columns=categorical_remaining, index=X_test_corr.index)
 
 #%%
 X_train_final = pd.concat([X_resampled.select_dtypes(include = np.number), X_train_cat], axis=1)
@@ -92,7 +92,7 @@ X_test_final = pd.concat([X_test_corr.select_dtypes(include = np.number), X_test
 
 
 #%%
-tree = DecisionTreeClassifier(max_depth=10, class_weight='balanced', random_state=42)
+tree = DecisionTreeClassifier(max_depth=10, random_state=42)
 
 param_grid = {
     'criterion': ['gini', 'entropy'],
@@ -120,13 +120,75 @@ grid_search.fit(X_train_final, y_resampled)
 best_params = grid_search.best_params_
 best_model = grid_search.best_estimator_
 
+# mean and std of CV accuracy across the 5 folds, for the winning hyperparameter
+# combination specifically (not just the single best_score_ scalar)
+best_idx = grid_search.best_index_
+cv_mean = grid_search.cv_results_['mean_test_score'][best_idx]
+cv_std = grid_search.cv_results_['std_test_score'][best_idx]
+ 
 print("\n=== Tuning Results ===")
 print(f"Best Hyperparameters: {best_params}")
+print(f"CV Accuracy: {cv_mean * 100:.2f}% (+/- {cv_std * 100:.2f}%)")
 
 #%%
-tree.fit(X_train_final, y_resampled)
-predictions = tree.predict(X_test_final)
+# use the tuned estimator from the grid search, not the untuned "tree" object.
+# grid_search(refit=True) already fits best_model on X_train_final/y_resampled,
+# so it does not need to be fitted again here.
+train_predictions = best_model.predict(X_train_final)
+test_predictions = best_model.predict(X_test_final)
+ 
+train_accuracy = accuracy_score(y_resampled, train_predictions)
+test_accuracy = accuracy_score(y_test, test_predictions)
+ 
+print(f"Train Accuracy: {train_accuracy * 100:.2f}%")
+print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+print(f"Train-Test Gap: {(train_accuracy - test_accuracy) * 100:.2f}%")
 
-accuracy = accuracy_score(y_test, predictions)
-print(f"Test Accuracy: {accuracy * 100:.2f}%")
+
+#%%
+# repeated runs for mean/std test accuracy -----------------------------------------------------
+# hyperparameters are fixed from the grid search above; only the random seed governing
+# the train/test split and the SMOTENC oversampling is varied across repetitions
+N_REPEATS = 10
+seeds = range(N_REPEATS)
+repeat_accuracies = []
+ 
+for seed in seeds:
+    Xr_train, Xr_test, yr_train, yr_test = train_test_split(
+        X, y, test_size=0.2, stratify=y, random_state=seed
+    )
+    Xr_train = Xr_train.copy()
+    Xr_test = Xr_test.copy()
+ 
+    Xr_train_card = Xr_train.drop(columns=card_columns)
+    Xr_test_card = Xr_test.drop(columns=card_columns)
+ 
+    Xr_train_corr = Xr_train_card.drop(columns=pairs)
+    Xr_test_corr = Xr_test_card.drop(columns=pairs)
+ 
+    smote_nc_r = SMOTENC(categorical_features=cat_positions, random_state=seed)
+    Xr_resampled, yr_resampled = smote_nc_r.fit_resample(Xr_train_corr, yr_train)
+ 
+    ord_enc_r = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
+    Xr_train_cat = pd.DataFrame(
+        ord_enc_r.fit_transform(Xr_resampled[categorical_remaining]),
+        columns=categorical_remaining, index=Xr_resampled.index
+    )
+    Xr_test_cat = pd.DataFrame(
+        ord_enc_r.transform(Xr_test_corr[categorical_remaining]),
+        columns=categorical_remaining, index=Xr_test_corr.index
+    )
+ 
+    Xr_train_final = pd.concat([Xr_resampled.select_dtypes(include=np.number), Xr_train_cat], axis=1)
+    Xr_test_final = pd.concat([Xr_test_corr.select_dtypes(include=np.number), Xr_test_cat], axis=1)
+ 
+    model_r = DecisionTreeClassifier(**best_params, random_state=seed)
+    model_r.fit(Xr_train_final, yr_resampled)
+    preds_r = model_r.predict(Xr_test_final)
+    repeat_accuracies.append(accuracy_score(yr_test, preds_r))
+ 
+repeat_accuracies = np.array(repeat_accuracies)
+print(f"\n=== Repeated Runs (n={N_REPEATS}) ===")
+print(f"Test Accuracy: {repeat_accuracies.mean() * 100:.2f}% (+/- {repeat_accuracies.std() * 100:.2f}%)")
 # %%
+ 

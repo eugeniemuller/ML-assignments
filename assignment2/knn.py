@@ -9,7 +9,8 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PowerTransformer
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.covariance import LedoitWolf
 
 
 #%%
@@ -159,40 +160,151 @@ X_train_final = pd.get_dummies(X_train_red, columns=categorical, dtype=int)
 X_test_final = pd.get_dummies(X_test_red, columns=categorical, dtype=int)
 X_test_final = X_test_final.reindex(columns=X_train_final.columns, fill_value=0)
 
+ 
 #%%
-from sklearn.covariance import LedoitWolf
-cov = LedoitWolf().fit(X_train_final)
+# grid search under the Mahalanobis distance measure -----------------------------------------------------------------
+# this replaces the previous hardcoded n_neighbors=3: the number of neighbours
+# is now tuned under the same distance measure the final model actually uses
 
-knn = KNeighborsClassifier()
-param_grid = {'n_neighbors':np.arange(1,4),
-                'weights': ['distance'],
-                'metric': ['manhattan']
-            }
-knn_cv= GridSearchCV(knn,param_grid,cv=5)
-knn_cv.fit(X_train_final,y_train)
-
-print(knn_cv.best_params_)
-print(knn_cv.best_score_)
-
-#%%
-knn = KNeighborsClassifier(
-    n_neighbors=knn_cv.best_params_['n_neighbors'],
-    weights='distance',
-    metric='mahalanobis',
-    metric_params={'VI': cov.precision_},
-    algorithm='brute',
-    n_jobs = -1,
+SUBSAMPLE_SIZE = 20000
+X_sub, _, y_sub, _ = train_test_split(
+    X_train_final, y_train, train_size=SUBSAMPLE_SIZE, stratify=y_train, random_state=42
 )
 
+cov_sub = LedoitWolf().fit(X_sub)
+ 
+mahalanobis_param_grid = {'n_neighbors': np.arange(1, 4)}
+knn_mahalanobis_sub = KNeighborsClassifier(
+    weights='distance',
+    metric='mahalanobis',
+    metric_params={'VI': cov_sub.precision_},
+    algorithm='auto'
+)
+knn_maha_cv = GridSearchCV(knn_mahalanobis_sub, mahalanobis_param_grid, cv=5, n_jobs=-1, verbose=2)
+knn_maha_cv.fit(X_sub, y_sub)
+ 
+best_idx = knn_maha_cv.best_index_
+cv_mean = knn_maha_cv.cv_results_['mean_test_score'][best_idx]
+cv_std = knn_maha_cv.cv_results_['std_test_score'][best_idx]
+best_k = knn_maha_cv.best_params_['n_neighbors']
+ 
+print(f"\n=== Mahalanobis-metric tuning (subsample, n={SUBSAMPLE_SIZE}) ===")
+print(f"Best Hyperparameters: {knn_maha_cv.best_params_}")
+print(f"CV Accuracy (on subsample): {cv_mean * 100:.2f}% (+/- {cv_std * 100:.2f}%)")
+ 
 #%%
-knn.fit(X_train_final, y_train)
-predictions = knn.predict(X_test_final)
-accuracy = accuracy_score(y_test, predictions)
 
+from scipy.linalg import cholesky
+
+cov = LedoitWolf().fit(X_train_final)
+L = cholesky(cov.precision_, lower=True)
+ 
+X_train_whitened = X_train_final.to_numpy() @ L
+X_test_whitened = X_test_final.to_numpy() @ L
+ 
+best_model = KNeighborsClassifier(
+    n_neighbors=best_k,
+    weights='distance',
+    metric='euclidean',
+    algorithm='auto'
+)
+best_model.fit(X_train_whitened, y_train)
+ 
+#%%
+# train vs test accuracy -----------------------------------------------------------------------------------------
+
+# predict on the whitened arrays, matching what best_model was fit on -
+
+train_predictions = best_model.predict(X_train_whitened)
+test_predictions = best_model.predict(X_test_whitened)
+ 
+train_accuracy = accuracy_score(y_train, train_predictions)
+test_accuracy = accuracy_score(y_test, test_predictions)
+ 
+print(f"Train Accuracy: {train_accuracy * 100:.2f}%")
+print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+print(f"Train-Test Gap: {(train_accuracy - test_accuracy) * 100:.2f}%")
+ 
 # %%
 comparison = pd.DataFrame({
     "true y" : y_test,
-    "predicted y" : predictions
+    "predicted y" : test_predictions
 })
 
+ 
+# %%
+comparison = pd.DataFrame({
+    "true y" : y_test,
+    "predicted y" : test_predictions
+})
+ 
+#%%
+# repeated runs for mean/std test accuracy -----------------------------------------------------------------------
+# hyperparameters are fixed from the Mahalanobis grid search above; only the
 
+
+N_REPEATS = 10
+repeat_accuracies = []
+ 
+for seed in range(N_REPEATS):
+    Xr_train, Xr_test, yr_train, yr_test = train_test_split(
+        X, y, test_size=0.2, stratify=y, random_state=seed
+    )
+    Xr_train = Xr_train.copy()
+    Xr_test = Xr_test.copy()
+ 
+    pt_r = PowerTransformer(method='yeo-johnson')
+    Xr_train_num = pd.DataFrame(
+        pt_r.fit_transform(Xr_train[numerical]), columns=numerical, index=Xr_train.index
+    )
+    Xr_test_num = pd.DataFrame(
+        pt_r.transform(Xr_test[numerical]), columns=numerical, index=Xr_test.index
+    )
+ 
+    scalar_r = RobustScaler()
+    Xr_train_num = pd.DataFrame(
+        scalar_r.fit_transform(Xr_train_num[numerical]), columns=numerical, index=Xr_train.index
+    )
+    Xr_test_num = pd.DataFrame(
+        scalar_r.transform(Xr_test_num[numerical]), columns=numerical, index=Xr_test.index
+    )
+ 
+    q1_r = Xr_train_num[numerical].quantile(0.25)
+    q3_r = Xr_train_num[numerical].quantile(0.75)
+    iqr_r = q3_r - q1_r
+    lower_r = q1_r - 3 * iqr_r
+    upper_r = q3_r + 3 * iqr_r
+ 
+    Xr_train_clipped = pd.concat(
+        [Xr_train_num[numerical].clip(lower=lower_r, upper=upper_r, axis=1), Xr_train[categorical]], axis=1
+    )
+    Xr_test_clipped = pd.concat(
+        [Xr_test_num[numerical].clip(lower=lower_r, upper=upper_r, axis=1), Xr_test[categorical]], axis=1
+    )
+ 
+    Xr_train_card = Xr_train_clipped.drop(columns=card_columns)
+    Xr_test_card = Xr_test_clipped.drop(columns=card_columns)
+ 
+    Xr_train_red = Xr_train_card.drop(columns=pairs)
+    Xr_test_red = Xr_test_card.drop(columns=pairs)
+ 
+    Xr_train_final = pd.get_dummies(Xr_train_red, columns=categorical, dtype=int)
+    Xr_test_final = pd.get_dummies(Xr_test_red, columns=categorical, dtype=int)
+    Xr_test_final = Xr_test_final.reindex(columns=Xr_train_final.columns, fill_value=0)
+ 
+    cov_r = LedoitWolf().fit(Xr_train_final)
+    model_r = KNeighborsClassifier(
+        n_neighbors=3,
+        weights='distance',
+        metric='mahalanobis',
+        metric_params={'VI': cov_r.precision_},
+        algorithm='auto'
+    )
+    model_r.fit(Xr_train_final, yr_train)
+    preds_r = model_r.predict(Xr_test_final)
+    repeat_accuracies.append(accuracy_score(yr_test, preds_r))
+ 
+repeat_accuracies = np.array(repeat_accuracies)
+print(f"\n=== Repeated Runs (n={N_REPEATS}) ===")
+print(f"Test Accuracy: {repeat_accuracies.mean() * 100:.2f}% (+/- {repeat_accuracies.std() * 100:.2f}%)")
+# %%
