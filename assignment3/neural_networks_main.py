@@ -6,12 +6,18 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import skew as calculate_skew
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import RobustScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 
-#%%loading data 
+import tensorflow as tf
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, SimpleRNN
+
 base = Path("/Users/eugeniemuller/HONOURS/HONOURS/ML/git assignments/ML-assignments/assignment3")
 os.chdir(base)
+
+#%%loading data 
 
 coffee = pd.read_excel(base / "data/Coffee Shop Sales.xlsx")
 coffee.to_csv(base / "data/coffee_shop_sales.csv", index=False)
@@ -22,6 +28,25 @@ coffee_data = pd.read_csv(base / "data/coffee_shop_sales.csv")
 # store location and store id all the same information
 # dropped most specific details for product category and product detail, as they are not relevant for the prediction of transaction quantity
 coffee_data = coffee_data.drop(columns = ['transaction_id', 'store_location', 'product_category', 'product_detail'])
+
+def convert_times():
+    coffee_data['transaction_time'] = pd.to_datetime(coffee_data['transaction_time'], format='%H:%M:%S').dt.time
+
+    # Define a function to categorize the time of day
+    def categorize_time_of_day(time):
+        if time < pd.to_datetime('12:00:00').time():
+            return 'morning'
+        elif time < pd.to_datetime('18:00:00').time():
+            return 'afternoon'
+        else:
+            return 'evening'
+
+    # Apply the function to create a new column
+    coffee_data['time_of_day'] = coffee_data['transaction_time'].apply(categorize_time_of_day)
+    coffee_data.drop(columns=['transaction_time'], inplace=True)
+
+
+convert_times()
 numerical = coffee_data.select_dtypes(include=[np.number])
 categorical = coffee_data.select_dtypes(exclude=[np.number])
 
@@ -53,7 +78,7 @@ for col in numerical.columns:
 skew_table.to_csv(base / "findings/skewness_table.csv", index=False)
 print(skew_table)
 
-
+#%%
 for col in categorical.columns:
     if col != 'transaction_date' and col != 'transaction_time':
         plt.figure(figsize=(8, 6))
@@ -79,19 +104,7 @@ for col in numerical.columns:
 outlier_table.to_csv(base / "findings/outlier_table.csv", index=False)
 print(outlier_table)
 
-# %% scaling : 
-
-X_data = coffee_data.iloc[:, :-1]
-y = coffee_data['transaction_qty']
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X_data, y, test_size=0.2, stratify=y, random_state=42
-)
-
-X_train = X_train.copy()
-X_test = X_test.copy()
-
-#%%
+#%% scaling
 
 # While a Robust Scaler prevents outliers from ruining the scaling of your other data, 
 # it does not remove the outliers. 
@@ -101,11 +114,106 @@ X_test = X_test.copy()
 # remove them. If they are real, legitimate spikes (like a sudden stock market crash), 
 # a Robust Scaler is exactly what you need to keep your model stable
 
-scalar = RobustScaler()
-X_train_stdised = scalar.fit_transform(X_train[numerical.columns])
-X_test_stdised = scalar.transform(X_test[numerical.columns])
+X = coffee_data.drop(columns=['transaction_qty'])
+y = coffee_data['transaction_qty']
 
-X_train_num = pd.DataFrame(X_train_stdised, columns=numerical.columns, index=X_train.index)
-X_test_num = pd.DataFrame(X_test_stdised, columns=numerical.columns, index=X_test.index)
+scaler = RobustScaler()
+scaled_data = scaler.fit_transform(X['unit_price'].values.reshape(-1, 1))
+X['unit_price'] = scaled_data
 
-# %%
+#%% encoding for the categorical feature
+# using standard label encoding
+le = LabelEncoder()
+for col in X.select_dtypes(exclude=np.number).columns if col != 'transaction_date' else []:
+    X[col] = le.fit_transform(X[col])
+
+
+#%% functions : 
+# create sliding window sequences : 
+
+def create_sequences(X, y, window_size):
+    sequences = []
+    labels = []
+    for i in range(len(X) - window_size):
+        sequences.append(X.iloc[i:i + window_size].values)
+        labels.append(y.iloc[i + window_size])
+    return np.array(sequences), np.array(labels)
+
+
+# getting correct data for models : 
+def data_for_model(data, num_classes):
+    transaction_ranking = data['transaction_qty'].value_counts().sort_values(ascending=True)
+    least_represented_classes = transaction_ranking.index[:num_classes]
+
+    data_for_model = data[data['transaction_qty'].isin(least_represented_classes)]
+    return data_for_model
+
+# train test split: 
+
+def train_test(data):
+
+    # data['transaction_date'] = pd.to_datetime(data['transaction_date'])
+
+    # # Extract numerical components
+    # data['month'] = data['transaction_date'].dt.month
+    # data['day_of_week'] = data['transaction_date'].dt.dayofweek
+
+    # # Drop the original date string column
+    # data = data.drop('transaction_date')
+
+    train_size = int(len(X) * 0.8)
+    X_train, X_test = X[:train_size], X[train_size:]
+    y_train, y_test = y[:train_size], y[train_size:]
+    return X_train, X_test, y_train, y_test
+
+# neural network implementation
+
+#%% RNN functions : 
+def training_model(model, X_train, y_train, X_test, y_test):
+    # Train the model
+
+    history = model.fit(
+        X_train, y_train, 
+        epochs=20, 
+        batch_size=16, 
+        validation_data=(X_test, y_test),
+        verbose=1
+    )
+
+    # Generate predictions on test data
+    predictions = model.predict(X_test)
+
+    # Inverse transform predictions back to original scale for interpretation
+    predictions_actual = predictions
+    y_test_actual = y_test
+    
+    return history, predictions_actual, y_test_actual
+
+#%% 
+# first model 
+# no hidden layers, only 2 least represented classes
+
+X, y = create_sequences(X, y, window_size=5)
+
+processed_data = pd.concat([X, y], axis=1)
+data = data_for_model(processed_data, num_classes=2)
+X_train, X_test, y_train, y_test = train_test(data)
+LOOKBACK = 5  # Number of previous time steps to consider for prediction
+
+#%%
+# Initialize a sequential model
+model_no_hidden = Sequential([
+    # Input shape is (time_steps, features)
+    SimpleRNN(1, input_shape=(LOOKBACK, X_train.shape[2]), activation='linear'),
+    # Predicting a single continuous value
+])
+
+#%%
+model_no_hidden.compile(optimizer='adam', loss='mse')
+model_no_hidden.summary()
+training_history_no_hidden, predictions_no_hidden, y_test_actual_no_hidden = training_model(model_no_hidden, X_train, y_train, X_test, y_test)
+
+#%%
+
+
+
