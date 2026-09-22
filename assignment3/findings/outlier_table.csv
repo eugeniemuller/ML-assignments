@@ -1,7 +1,13 @@
 Feature,Outlier Count
-transaction_qty,36
-store_id,0
-product_id,0
-unit_price,4212
-day_of_week,0
-month,0
+fixed acidity,357
+volatile acidity,377
+citric acid,509
+residual sugar,118
+chlorides,286
+free sulfur dioxide,62
+total sulfur dioxide,10
+density,3
+pH,73
+sulphates,191
+alcohol,3
+quality,228
