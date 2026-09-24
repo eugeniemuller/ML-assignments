@@ -9,11 +9,15 @@ from scipy.stats import skew as calculate_skew
 from sklearn.preprocessing import RobustScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, f1_score
+from sklearn.utils.class_weight import compute_class_weight
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from tensorflow.keras.layers import SimpleRNN
+
+
 
 tf.random.set_seed(42)
 np.random.seed(42)
@@ -91,13 +95,12 @@ print(outlier_table)
 
 #%% model variables : --------------------------------------------------------------------------------------------------------------------------------------------
 
-EPOCHS = 10            # per incremental stage
+EPOCHS = 50
 BATCH = 256
 REPLAY_PER_CLASS = 500  # exemplars kept per old class (0 = plain fine-tuning)
  
 # Class-incremental schedule: which transaction_qty values are introduced at each stage.
 # (Classes 4, 6, 8 have only 23, 3 and 10 rows in total, so they are grouped into one stage.)
-
 
 #%% modeling functions : ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +116,6 @@ def train_test(data):
     X_train = X_train.copy()
     X_test = X_test.copy()
     return X_train, X_test, y_train, y_test
-
 
 def get_class_order(y):
     labels, counts = np.unique(y, return_counts=True)
@@ -139,8 +141,6 @@ def data_for_stage(X, y, stage, class_order, n_initial, cumulative=True):
     return X[mask], y[mask], classes
 
 def remap_labels(y, seen_classes):
-    """Map raw class values (e.g. quality scores) to 0..len(seen_classes)-1,
-    in the order given by seen_classes."""
     class_to_idx = {c: i for i, c in enumerate(seen_classes)}
     return np.array([class_to_idx[v] for v in y])
 
@@ -155,33 +155,51 @@ def build_model(n_hidden_units, n_output_classes, n_features):
                   metrics=['sparse_categorical_accuracy'])
     return model
 
-
-def diagnose_fit(history):
+def diagnose_fit(model, X_val, y_val, history):
     train_acc = history.history['sparse_categorical_accuracy'][-1]
     val_acc = history.history['val_sparse_categorical_accuracy'][-1]
     gap = train_acc - val_acc
-    if train_acc < 0.65:   
-        print(f"Training accuracy is low: {train_acc:.4f}. Model is underfitting.")       
+
+    val_pred = np.argmax(model.predict(X_val, verbose=0), axis=1)
+    macro_f1 = f1_score(y_val, val_pred, average='macro', zero_division=0)
+
+    if macro_f1 < 0.5:
+        print(f"Model is underfitting, macro-F1 score of {macro_f1:.4f}")
         return "underfit"
-    elif gap > 0.15:    
-        print(f"Validation accuracy is significantly lower than training accuracy: gap={gap:.4f}. Model is overfitting.")        
+    elif gap > 0.15:
+        print(f"Model is overfitting, gap of {gap:.4f}")
         return "overfit"
     else:
-        print(f"Training accuracy: {train_acc:.4f}, Validation accuracy: {val_acc:.4f}. Model fit is acceptable.")
+        print(f"Model is acceptable, macro-F1 score of {macro_f1:.4f} and gap of {gap:.4f}")
         return "acceptable"
 
+def train_until_ready(X, y, seen_classes, n_features, batch, max_hidden=10):
+    X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
-def train_until_ready(X, y, seen_classes, n_features, max_hidden=10, epochs=10):
-
+    best = None  # (macro_f1, n_hidden, model, history)
     n_hidden = 0
     while True:
         model = build_model(n_hidden, len(seen_classes), n_features)
-        history = model.fit(X, y, epochs=epochs, batch_size=BATCH,
-                             validation_split=0.2, verbose=0)
-        status = diagnose_fit(history)
-        print(f"hidden_units={n_hidden} -> {status}")
-        if status != "underfit" or n_hidden >= max_hidden:
-            return model, history, n_hidden
+        weights = compute_class_weight('balanced', classes=np.unique(y_tr), y=y_tr)
+        weights = np.sqrt(weights)  # dampens the most extreme weights
+        class_weight_dict = dict(zip(np.unique(y_tr), weights))
+
+        history = model.fit(X_tr, y_tr, epochs=EPOCHS, batch_size=batch,
+                             validation_data=(X_val, y_val), verbose=0)
+
+        val_pred = np.argmax(model.predict(X_val, verbose=0), axis=1)
+        macro_f1 = f1_score(y_val, val_pred, average='macro', zero_division=0)
+        train_acc = history.history['sparse_categorical_accuracy'][-1]
+        val_acc = history.history['val_sparse_categorical_accuracy'][-1]
+        gap = train_acc - val_acc
+
+        print(f"hidden_units={n_hidden} -> macro_f1={macro_f1:.4f}, gap={gap:.4f}")
+
+        if best is None or macro_f1 > best[0]:
+            best = (macro_f1, n_hidden, model, history)
+
+        if macro_f1 >= 0.5 or gap > 0.15 or n_hidden >= max_hidden:
+            return best[2], best[3], best[1]   # return the BEST model seen, not the last
         n_hidden += 1
 
 def get_loss(history1):
@@ -191,30 +209,62 @@ def get_loss(history1):
 
 # neural network implementation
 
-#%% model data initialization : --------------------------------------------------------------------------------------------------------------------------------------------
+# model data initialization : --------------------------------------------------------------------------------------------------------------------------------------------
+
+#%% model1 : -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class_order = get_class_order(wine_data['quality'])
 X_train, X_test, y_train, y_test = train_test(wine_data)
 scaled_X_train, scaled_X_test = robust_scaler(X_train, X_test)
 
+seen = class_order 
+
+def baseline(X_train, y_train, X_test, y_test):
+    model = Sequential([
+        layers.Input(shape=(X_train.shape[1],)),
+        layers.Dense(30, activation='relu'),
+        layers.Dense(len(np.unique(y_train)), activation='softmax')
+    ])
+    model.compile(optimizer='adam',
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                  metrics=['sparse_categorical_accuracy'])
+    history = model.fit(X_train, y_train, epochs=EPOCHS, batch_size=BATCH,
+                        validation_split=0.2, verbose=0)
+    test_loss, test_acc = model.evaluate(X_test, y_test, verbose=0)
+    print(f"Baseline Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}")
+    return model, history
+
+all_classes = class_order   # every class, in the same rarity order used throughout
+y_s = remap_labels(y_train, all_classes).astype('int32')
+y_t = remap_labels(y_test, all_classes).astype('int32')
+baseline_model, baseline_history = baseline(scaled_X_train, y_s, scaled_X_test, y_t)
+
+
+#%% incremental learning : ---------------------------------------------------------------------------------------------------------------------------------------------------
 n_stages = len(class_order) -  1   
-# starting with two least frequent classes
 seen = class_order[:2]            
-models_by_stage = []         
+models_by_stage = []
 
 for i in range(2, len(class_order) + 1):
     stage = i - 2
-    X_s, y_s, classes = data_for_stage(X_train, y_train, stage=stage,
+    X_s, y_s, classes = data_for_stage(scaled_X_train, y_train, stage=stage,
                                         class_order=class_order, n_initial=2, cumulative=True)
+    batch_size_for_stage = min(BATCH, max(8, len(X_s) // 4))
+    X_s, y_s, classes = data_for_stage(scaled_X_train, y_train, stage=stage,
+                                        class_order=class_order, n_initial=2, cumulative=True)
+    batch_size_for_stage = min(BATCH, max(8, len(X_s) // 4))
     y_s = remap_labels(y_s, classes).astype('int32')
-
-    X_t, y_t, _ = data_for_stage(X_test, y_test, stage=stage,
+    X_t, y_t, _ = data_for_stage(scaled_X_test, y_test, stage=stage,
                                   class_order=class_order, n_initial=2, cumulative=True)
     y_t = remap_labels(y_t, classes).astype('int32')
 
-    model, history, n_hidden = train_until_ready(X_s, y_s, classes, n_features=X_train.shape[1])
+    model, history, n_hidden = train_until_ready(X_s, y_s, classes, n_features=scaled_X_train.shape[1], batch=batch_size_for_stage)
 
     test_loss, test_acc = model.evaluate(X_t, y_t, verbose=0)
+
+    pred_idx = np.argmax(model.predict(X_t, verbose=0), axis=1)
+    macro_f1 = f1_score(y_t, pred_idx, average='macro')
+    print(classification_report(y_t, pred_idx, zero_division=0))
 
     models_by_stage.append({
         "stage": stage,
@@ -231,7 +281,7 @@ for i in range(2, len(class_order) + 1):
         "X_t": X_t,
         "y_t": y_t,
     })
-#%% first model : ---------------------------------------------------------------------------------------------------------------------------------------------------
+#%% model summary : ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 summary = pd.DataFrame([{
     "stage": r["stage"],
@@ -247,7 +297,8 @@ summary = pd.DataFrame([{
 } for r in models_by_stage])
 
 print(summary.to_string(index=False))
-# %%
+
+# %% findings : ---------------------------------------------------------------------------------------------------------------------------------------------
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
 axes[0].plot(summary['stage'], summary['n_hidden'], marker='o')
