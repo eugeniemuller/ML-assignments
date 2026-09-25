@@ -54,24 +54,25 @@ sns.countplot(data=wine_data, x='quality', palette='Set2')
 plt.title('Distribution of Target Classes')
 plt.xlabel('Class Label (Transaction Quantity)')
 plt.ylabel('Count')
-plt.show()
 plt.savefig(base / "findings/class_distribution.png")
+plt.show()
 plt.close()
 
-for col in wine_data.columns:
-    plt.figure(figsize=(8, 6))
-    sns.countplot(data=wine_data, x=col, palette='Set2')
-    plt.title(f'Distribution of {col}')
-    plt.ylabel('Count')
-    plt.show()
-    plt.savefig(base / f"findings/class_distribution_{col}.png")
-    plt.close()
+# for col in wine_data.columns:
+#     plt.figure(figsize=(8, 6))
+#     sns.countplot(data=wine_data, x=col, palette='Set2')
+#     plt.title(f'Distribution of {col}')
+#     plt.ylabel('Count')
+#     plt.show()
+#     plt.savefig(base / f"findings/class_distribution_{col}.png")
+#     plt.close()
 
 #%% skewness : ---------------------------------------------------------------------------------------------------------------------------------------
 skew_table = pd.DataFrame(columns=['Feature', 'Skewness'])
 for col in wine_data.columns:
-    skewness = calculate_skew(wine_data[col], bias = False)
-    skew_table = pd.concat([skew_table, pd.DataFrame({'Feature': [col], 'Skewness': [skewness]})], ignore_index=True)
+    if col != 'quality':  # Skip the target variable
+        skewness = calculate_skew(wine_data[col], bias = False)
+        skew_table = pd.concat([skew_table, pd.DataFrame({'Feature': [col], 'Skewness': [skewness]})], ignore_index=True)
 
 skew_table.to_csv(base / "findings/skewness_table.csv", index=False)
 print(skew_table)
@@ -80,6 +81,8 @@ print(skew_table)
 #%% outliers : ---------------------------------------------------------------------------------------------------------------------------------------
 outlier_table = pd.DataFrame(columns=['Feature', 'Outlier Count'])
 for col in wine_data.columns:
+    if col == 'quality':  # Skip the target variable
+        continue
     Q1 = wine_data[col].quantile(0.25)
     Q3 = wine_data[col].quantile(0.75)
     IQR = Q3 - Q1
