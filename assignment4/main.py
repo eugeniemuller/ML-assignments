@@ -5,6 +5,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from catboost import CatBoostClassifier, Pool
+from sklearn.metrics import f1_score, balanced_accuracy_score, classification_report
+from xgboost import XGBClassifier
+import lightgbm as lgb
 
 import os
 
@@ -30,15 +33,12 @@ for col in traffic_data.columns :
 
 traffic_data[missingness] = traffic_data[missingness].replace({'?' : 'missing'})
 
-# cardinality = nunique / length -------------------------------------------------------------------------------------
-card_columns = []
+# duplicates ------------------------------------------------------------------------------------------------------
+traffic_data = traffic_data.drop(columns="id")
+n_before = len(traffic_data)
+traffic_data = traffic_data.drop_duplicates().reset_index(drop=True)
+print(f"Dropped {n_before - len(traffic_data)} duplicate rows")
 
-for col in traffic_data.columns:
-    ratio = traffic_data[col].nunique() / len(traffic_data)
-    if ratio >= 0.85 :
-        card_columns.append(col)
-
-traffic_data.drop(card_columns, axis=1, inplace=True)
 
 #%% 
 #train-test splits
@@ -46,34 +46,41 @@ traffic_data.drop(card_columns, axis=1, inplace=True)
 X = traffic_data.iloc[:, :-1]
 y = traffic_data["attack_cat"]
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, stratify=y, random_state=42
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.4, stratify=y, random_state=42
+)
+
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42
 )
 
 X_train = X_train.copy()
-X_test = X_test.copy()
+X_val = X_val.copy()
+X_test = X_test.copy()  
 
 #%% 
 # catboost implementation 
 
-model = CatBoostClassifier(
-    iterations=10,        # Number of boosting rounds
-    learning_rate=0.1,    # Step size shrinkage
-    depth=4,              # Depth of the tree
-    verbose=True          # Set to False or use silent=True to suppress logs
+
+categorical_seq = [c for c in categorical.columns if c in X_train.columns]
+
+cat_model = CatBoostClassifier(
+    iterations=500,
+    learning_rate=0.5,
+    depth=8,
+    eval_metric="TotalF1:average=Macro",
+    early_stopping_rounds=50,     # stop when val macro-F1 stops improving
+    use_best_model=True,
+    random_seed=42,
+    verbose=50,
 )
+cat_model.fit(X_train, y_train, cat_features=categorical_seq,
+              eval_set=(X_val, y_val))
 
-# 4. Fit the model
-categorical_seq = [col for col in categorical.columns if col in X_train.columns]
-model.fit(X_train, y_train, cat_features=categorical_seq, eval_set=(X_test, y_test), verbose=True)
-
-# 5. Predict and Evaluate
-preds = model.predict(X_test)
-probs = model.predict_proba(X_test)
-
-print(f"Accuracy: {accuracy_score(y_test, preds)}")
-
-# catboost
-# cgboost
-# lightgbm
+preds = cat_model.predict(X_test).ravel()
+print("Best iteration:", cat_model.get_best_iteration())
+print("Test macro-F1:     ", f1_score(y_test, preds, average="macro"))
+print("Test balanced acc: ", balanced_accuracy_score(y_test, preds))
+print("Test accuracy:     ", accuracy_score(y_test, preds))
+print(classification_report(y_test, preds, digits=3))
 # %%
